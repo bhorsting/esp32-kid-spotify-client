@@ -1,0 +1,21 @@
+idf_component_register(
+    SRC_DIRS
+        "."
+        "board"
+        "spotify"
+        "ui"
+        "ui/screens"
+        "ui/widgets"
+    INCLUDE_DIRS
+        "../include"
+        "../include/board"
+        "../include/spotify"
+        "../include/ui"
+        "../include/ui/screens"
+        "../include/ui/widgets"
+    REQUIRES
+        lvgl
+        esp_timer
+        freertos
+        driver
+)
