@@ -4,14 +4,17 @@
 #include <stdlib.h>
 #include <string.h>
 
-static const char *const k_pages[4][9] = {
+/* Pages: upper / lower / digits / symbols — enough for Wi‑Fi SSIDs & passwords. */
+static const char *const k_pages[6][9] = {
     {"A", "B", "C", "D", "E", "F", "G", "H", "I"},
     {"J", "K", "L", "M", "N", "O", "P", "Q", "R"},
     {"S", "T", "U", "V", "W", "X", "Y", "Z", "'"},
+    {"a", "b", "c", "d", "e", "f", "g", "h", "i"},
     {"1", "2", "3", "4", "5", "6", "7", "8", "9"},
+    {"0", "-", "_", ".", "@", "!", "#", "*", "?"},
 };
 
-static const char *const k_page_labels[4] = {"ABC", "JKL", "STU", "123"};
+static const char *const k_page_labels[6] = {"ABC", "JKL", "STU", "abc", "123", "#?!"};
 
 static void refresh_keys(kid_keyboard_t *kb)
 {
@@ -23,7 +26,7 @@ static void refresh_keys(kid_keyboard_t *kb)
 
 static void emit_change(kid_keyboard_t *kb)
 {
-    lv_label_set_text(kb->field, kb->buffer[0] ? kb->buffer : "Type a song…");
+    lv_label_set_text(kb->field, kb->buffer[0] ? kb->buffer : "Type here...");
     if (kb->on_change) {
         kb->on_change(kb->buffer, kb->user);
     }
@@ -53,7 +56,7 @@ static void on_letter(lv_event_t *e)
 static void on_page(lv_event_t *e)
 {
     kid_keyboard_t *kb = (kid_keyboard_t *)lv_event_get_user_data(e);
-    kb->page = (kb->page + 1) % 4;
+    kb->page = (kb->page + 1) % 6;
     refresh_keys(kb);
 }
 
@@ -86,16 +89,17 @@ static lv_obj_t *make_key(lv_obj_t *parent, kid_keyboard_t *kb, lv_event_cb_t cb
     const ui_theme_t *t = ui_theme();
     lv_obj_t *btn = lv_btn_create(parent);
     lv_obj_set_size(btn, w, h);
-    lv_obj_set_style_radius(btn, 12, 0);
+    lv_obj_set_style_radius(btn, 10, 0);
     lv_obj_set_style_bg_color(btn, t->surface, 0);
     lv_obj_set_style_bg_opa(btn, LV_OPA_COVER, 0);
     lv_obj_set_style_shadow_width(btn, 0, 0);
     lv_obj_set_style_border_width(btn, 0, 0);
+    lv_obj_set_style_pad_all(btn, 0, 0);
     lv_obj_add_event_cb(btn, cb, LV_EVENT_CLICKED, kb);
 
     lv_obj_t *lab = lv_label_create(btn);
     lv_obj_set_style_text_color(lab, t->text, 0);
-    lv_obj_set_style_text_font(lab, &lv_font_montserrat_18, 0);
+    lv_obj_set_style_text_font(lab, &lv_font_montserrat_14, 0);
     lv_label_set_text(lab, "");
     lv_obj_center(lab);
     return btn;
@@ -109,56 +113,52 @@ kid_keyboard_t *kid_keyboard_create(lv_obj_t *parent)
     }
 
     const ui_theme_t *t = ui_theme();
+    const int kb_w = 240;
+    const int key_w = 72;
+    const int key_h = 34;
+    const int gap = 6;
+    const int grid_w = 3 * key_w + 2 * gap;
+    const int start_x = (kb_w - grid_w) / 2;
+
     kb->root = lv_obj_create(parent);
-    lv_obj_set_size(kb->root, 320, 168);
+    lv_obj_set_size(kb->root, kb_w, 168);
     lv_obj_set_style_bg_opa(kb->root, LV_OPA_TRANSP, 0);
     lv_obj_set_style_border_width(kb->root, 0, 0);
     lv_obj_set_style_pad_all(kb->root, 0, 0);
-    lv_obj_clear_flag(kb->root, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_clear_flag(kb->root, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_CLICKABLE);
 
     kb->field = lv_label_create(kb->root);
-    lv_obj_set_width(kb->field, 300);
+    lv_obj_set_width(kb->field, kb_w - 8);
     lv_obj_align(kb->field, LV_ALIGN_TOP_MID, 0, 0);
     lv_obj_set_style_text_color(kb->field, t->text_muted, 0);
-    lv_obj_set_style_text_font(kb->field, &lv_font_montserrat_16, 0);
+    lv_obj_set_style_text_font(kb->field, &lv_font_montserrat_12, 0);
     lv_label_set_long_mode(kb->field, LV_LABEL_LONG_CLIP);
-    lv_label_set_text(kb->field, "Type a song…");
-
-    const int key_w = 34;
-    const int key_h = 40;
-    const int gap = 4;
-    const int grid_w = 9 * key_w + 8 * gap;
-    const int start_x = (320 - grid_w) / 2;
+    lv_label_set_text(kb->field, "Type here...");
 
     for (int i = 0; i < 9; i++) {
+        int col = i % 3;
+        int row = i / 3;
         kb->keys[i] = make_key(kb->root, kb, on_letter, key_w, key_h);
-        lv_obj_set_pos(kb->keys[i], start_x + i * (key_w + gap), 28);
+        lv_obj_set_pos(kb->keys[i], start_x + col * (key_w + gap), 20 + row * (key_h + gap));
     }
 
-    /* Second row: page | space | back | go */
-    kb->page_btn = make_key(kb->root, kb, on_page, 56, key_h);
-    lv_obj_set_pos(kb->page_btn, start_x, 28 + key_h + gap);
+    int y2 = 20 + 3 * (key_h + gap);
+    kb->page_btn = make_key(kb->root, kb, on_page, 52, key_h);
+    lv_obj_set_pos(kb->page_btn, start_x, y2);
 
-    kb->space_btn = make_key(kb->root, kb, on_space, 120, key_h);
-    lv_obj_set_pos(kb->space_btn, start_x + 56 + gap, 28 + key_h + gap);
-    lv_label_set_text(lv_obj_get_child(kb->space_btn, 0), "space");
+    kb->space_btn = make_key(kb->root, kb, on_space, 72, key_h);
+    lv_obj_set_pos(kb->space_btn, start_x + 52 + gap, y2);
+    lv_label_set_text(lv_obj_get_child(kb->space_btn, 0), "spc");
 
-    kb->back_btn = make_key(kb->root, kb, on_back, 48, key_h);
-    lv_obj_set_pos(kb->back_btn, start_x + 56 + gap + 120 + gap, 28 + key_h + gap);
-    lv_label_set_text(lv_obj_get_child(kb->back_btn, 0), "⌫");
+    kb->back_btn = make_key(kb->root, kb, on_back, 44, key_h);
+    lv_obj_set_pos(kb->back_btn, start_x + 52 + gap + 72 + gap, y2);
+    lv_label_set_text(lv_obj_get_child(kb->back_btn, 0), LV_SYMBOL_BACKSPACE);
 
-    kb->go_btn = make_key(kb->root, kb, on_go, 56, key_h);
-    lv_obj_set_pos(kb->go_btn, start_x + 56 + gap + 120 + gap + 48 + gap, 28 + key_h + gap);
+    kb->go_btn = make_key(kb->root, kb, on_go, 48, key_h);
+    lv_obj_set_pos(kb->go_btn, start_x + 52 + gap + 72 + gap + 44 + gap, y2);
     lv_obj_set_style_bg_color(kb->go_btn, t->accent, 0);
     lv_label_set_text(lv_obj_get_child(kb->go_btn, 0), "GO");
     lv_obj_set_style_text_color(lv_obj_get_child(kb->go_btn, 0), t->bg, 0);
-
-    /* Hint row */
-    lv_obj_t *hint = lv_label_create(kb->root);
-    lv_obj_align(hint, LV_ALIGN_BOTTOM_MID, 0, 0);
-    lv_obj_set_style_text_color(hint, t->text_muted, 0);
-    lv_obj_set_style_text_font(hint, &lv_font_montserrat_12, 0);
-    lv_label_set_text(hint, "Tap ABC to switch letters");
 
     refresh_keys(kb);
     return kb;

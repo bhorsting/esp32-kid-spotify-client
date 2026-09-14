@@ -4,10 +4,18 @@
 #include <stdint.h>
 
 #define LV_COLOR_DEPTH 16
-#define LV_COLOR_16_SWAP 0
+/* Waveshare ST77916 QSPI expects big-endian RGB565 bytes (see LCD_addWindow byte swap). */
+#define LV_COLOR_16_SWAP 1
 
-#define LV_MEM_CUSTOM 0
-#define LV_MEM_SIZE (48U * 1024U)
+/*
+ * Prefer internal SRAM for LVGL objects (fast); fall back to 8MB PSRAM when
+ * internal is tight. Pure-PSRAM made touch/redraw feel sluggish.
+ */
+#define LV_MEM_CUSTOM 1
+#define LV_MEM_CUSTOM_INCLUDE "marten_lv_mem.h"
+#define LV_MEM_CUSTOM_ALLOC(size) marten_lv_malloc(size)
+#define LV_MEM_CUSTOM_FREE(ptr) marten_lv_free(ptr)
+#define LV_MEM_CUSTOM_REALLOC(ptr, size) marten_lv_realloc((ptr), (size))
 
 #define LV_DISP_DEF_REFR_PERIOD 16
 #define LV_INDEV_DEF_READ_PERIOD 16
@@ -77,8 +85,9 @@
 #define LV_USE_THEME_DEFAULT 1
 #define LV_THEME_DEFAULT_DARK 1
 #define LV_THEME_DEFAULT_GROW 0
+#define LV_THEME_DEFAULT_TRANSITION_TIME 0
 
 #define LV_USE_FLEX 1
 #define LV_USE_GRID 0
 
-#endif /* LV_CONF_H */
+#endif

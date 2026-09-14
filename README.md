@@ -16,20 +16,21 @@ cspot is unofficial and outside Spotify’s ToS; streams can break when Spotify 
 
 ## Child UX
 
-- **Play** — now playing, huge ⏮ ▶ ⏭ + heart  
-- **Lists** — parent-curated playlists  
-- **♥** — favourites  
-- **Find** — simplified paged keyboard (A–I / J–R / S–Z / 123), typeahead after 2 letters  
-- **⚙** — volume (capped) + parent PIN (`2468` default) for Wi‑Fi / account  
+- **Ring** — center = now playing cover; 5 slices = next tracks in curated playlist  
+- Tap a slice to jump; triple-tap center → Settings (Wi‑Fi / playlist portal)  
+- Parents share one playlist via Marten-Setup portal  
+
+## Display / touch
+
+LCD bring-up is a port of the official Waveshare ESP-IDF drivers under `src/board/waveshare/`: **ST77916** (QSPI), **CST816** touch, and **TCA9554** EXIO (reset / expanders), wired through `src/board/display.c` into LVGL 8.3. Cover art via `esp_jpeg` + PSRAM.
 
 ## Repo status
 
-UI + player **stub** (demo tracks) compile-ready. Next hardware steps:
+Ring UI + cspot Connect + Web API curated playlist. Next:
 
-1. Port Waveshare ST77916 QSPI + CST816 + TCA9554 into `src/board/`  
-2. Real I2S sink in `board_audio_feed_pcm`  
-3. Integrate [cspot](https://github.com/feelfreelinux/cspot) + Web API  
-4. Captive-portal / device-login for parent Spotify + Wi‑Fi  
+1. Persist Spotify LoginBlob in NVS  
+2. Volume hardware / gesture  
+3. Faster art cache  
 
 ## Build
 
@@ -40,15 +41,14 @@ pio run -e waveshare_s3_1_85 -t upload
 pio device monitor
 ```
 
-Board not required to keep developing UI against the stub display/audio backends.
-
 ## Layout
 
 ```
-include/board_pins.h     Waveshare pin map
-include/ui/              UI API + screens + kid keyboard
-src/ui/                  LVGL screens
-src/spotify/player_stub  Mock player (swap for cspot)
-src/board/*_stub         Display/audio placeholders
-docs/ARCHITECTURE.md     Integration plan
+include/board_pins.h           Waveshare pin map
+include/ui/                    UI API + cover art + screens
+src/ui/screens/ring.c          Main ring UI
+src/ui/cover_art.c             JPEG download/decode
+src/spotify/player_stub.cpp    Curated queue + Connect
+components/spotify_connect/    cspot + Web API
+docs/ARCHITECTURE.md           Integration plan
 ```

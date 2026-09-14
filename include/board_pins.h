@@ -39,11 +39,19 @@
 #define PIN_I2C_SDA 11
 #define TCA9554_ADDR 0x20
 
-/* SD (SPI) */
-#define PIN_SD_MISO 16
-#define PIN_SD_MOSI 17
+/* SD / TF (SDMMC 1-bit; CS/D3 on expander) */
+#define PIN_SD_MISO 16 /* D0 */
+#define PIN_SD_MOSI 17 /* CMD */
 #define PIN_SD_SCK  14
+#define EXIO_SD_CS  3 /* TCA9554 EXIO3 */
 
 #define DISPLAY_WIDTH  360
 #define DISPLAY_HEIGHT 360
-#define DISPLAY_SAFE_DIAMETER 320 /* keep interactive chrome inside circle */
+/* Keep chrome inside the round panel; top bias for vertical centering. */
+#define DISPLAY_TOP_MARGIN    52
+#define DISPLAY_BOTTOM_MARGIN 44
+#define DISPLAY_SAFE_W 250
+#define DISPLAY_NAV_H   36
+#define DISPLAY_SAFE_H  (DISPLAY_HEIGHT - DISPLAY_TOP_MARGIN - DISPLAY_BOTTOM_MARGIN - DISPLAY_NAV_H - 10)
+#define DISPLAY_SAFE_DIAMETER DISPLAY_SAFE_W /* legacy alias */
+#define DISPLAY_EDGE_MARGIN DISPLAY_TOP_MARGIN /* legacy alias */

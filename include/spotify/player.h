@@ -16,6 +16,8 @@ typedef struct {
     char image_url[192];
     bool liked;
     uint32_t duration_ms;
+    /** Absolute Connect queue index when snapshotted (-1 if unknown). */
+    int connect_index;
 } spotify_track_t;
 
 typedef struct {
@@ -33,24 +35,32 @@ typedef struct {
 } player_state_t;
 
 typedef void (*player_state_cb_t)(const player_state_t *state, void *user);
-typedef void (*player_search_cb_t)(const spotify_track_t *results, size_t count, void *user);
+
+#define PLAYER_QUEUE_MAX 40
+#define PLAYER_RING_NEXT 5
 
 void player_init(void);
 void player_set_state_callback(player_state_cb_t cb, void *user);
-
 const player_state_t *player_get_state(void);
 
 void player_play_pause(void);
 void player_next(void);
 void player_previous(void);
 void player_set_volume(uint8_t volume);
-void player_toggle_like(void);
-void player_play_track(const char *track_id);
-void player_play_playlist(const char *playlist_id);
 
-void player_search(const char *query, player_search_cb_t cb, void *user);
-void player_get_favourites(player_search_cb_t cb, void *user);
-void player_get_browse_playlists(spotify_playlist_t *out, size_t max, size_t *count);
+/** Curated playlist (parent-shared). ID bare or spotify:playlist:… */
+bool player_set_curated_playlist(const char *playlist_id);
+void player_get_curated_playlist_id(char *buf, size_t buflen);
+bool player_reload_curated(void);
+
+/** Ring model: current + up to 5 following tracks (wrap). */
+size_t player_queue_count(void);
+int player_queue_index(void);
+bool player_queue_get(int index, spotify_track_t *out);
+/** Jump to ring queue offset (1=next…) and start playback. */
+void player_play_queue_index(int index);
+/** Play the track shown on a wedge: prefer `track_id` inside the live ring window. */
+void player_play_ring_choice(int offset, const char *track_id);
 
 bool player_is_ready(void);
 

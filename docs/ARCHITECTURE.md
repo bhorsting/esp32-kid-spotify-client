@@ -30,7 +30,7 @@ CST816 ──indev──► LVGL pointer
 TCA9554 ──LCD_RST / TP_RST / etc.
 ```
 
-Stub flush/indev in `display_stub.c` until Waveshare drivers are ported (their Arduino `LVGL_Arduino` demo is the reference).
+Implemented under `src/board/waveshare/` (ESP-IDF Waveshare port) and `src/board/display.c` (LVGL flush/indev + tick).
 
 ## Kid keyboard
 
@@ -42,9 +42,11 @@ Settings PIN (`PARENT_PIN_DEFAULT`) unlocks Wi‑Fi and Spotify account flows (t
 
 ## Suggested integration order
 
-1. Flash Waveshare LVGL demo — prove LCD + touch  
-2. Replace stub display with that bring-up; keep Marten UI  
-3. I2S tone test on PCM5101 pins  
-4. cspot as library + `PCM5102AudioSink`-style sink with our pins  
-5. Wire `player_*` to cspot + Web API  
-6. Parent provisioning UI  
+1. Flash Marten — prove LCD + touch with real UI ✅  
+2. I2S on PCM5101 pins ✅ (`components/board_audio`)  
+3. cspot + Zeroconf Connect sink ✅  
+4. Wire transport to cspot ✅  
+5. Parent Wi‑Fi portal ✅ (`Marten-Setup`)  
+6. Ring UI + cover art + curated playlist ✅  
+7. Persist Spotify LoginBlob in NVS — next  
+8. Volume gesture / hardware — later  

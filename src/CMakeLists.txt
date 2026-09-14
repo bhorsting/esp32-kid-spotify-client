@@ -2,7 +2,14 @@ idf_component_register(
     SRC_DIRS
         "."
         "board"
+        "board/waveshare/I2C_Driver"
+        "board/waveshare/EXIO"
+        "board/waveshare/LCD_Driver"
+        "board/waveshare/LCD_Driver/esp_lcd_st77916"
+        "board/waveshare/Touch_Driver"
+        "board/waveshare/Touch_Driver/esp_lcd_touch"
         "spotify"
+        "net"
         "ui"
         "ui/screens"
         "ui/widgets"
@@ -13,9 +20,30 @@ idf_component_register(
         "../include/ui"
         "../include/ui/screens"
         "../include/ui/widgets"
+        "../include/net"
+        "board/waveshare/I2C_Driver"
+        "board/waveshare/EXIO"
+        "board/waveshare/LCD_Driver"
+        "board/waveshare/LCD_Driver/esp_lcd_st77916"
+        "board/waveshare/Touch_Driver"
+        "board/waveshare/Touch_Driver/esp_lcd_touch"
     REQUIRES
         lvgl
         esp_timer
         freertos
         driver
+        esp_lcd
+        esp_psram
+        nvs_flash
+        esp_wifi
+        esp_event
+        esp_netif
+        esp_http_server
+        esp_http_client
+        mbedtls
+        board_audio
+        spotify_connect
+        espressif__esp_jpeg
+        fatfs
+        sdmmc
 )

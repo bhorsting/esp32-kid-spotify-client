@@ -11,7 +11,11 @@ void ui_init(void);
 void ui_show_screen(app_screen_t screen);
 app_screen_t ui_current_screen(void);
 
-/* Theme tokens — warm coral / sky, kid-friendly, round-display safe */
+/** Safe from any task — marks UI dirty; applied on the LVGL/ui task. */
+void ui_request_refresh(void);
+/** Call from LVGL/ui task only. */
+void ui_poll_refresh(void);
+
 typedef struct {
     lv_color_t bg;
     lv_color_t surface;
